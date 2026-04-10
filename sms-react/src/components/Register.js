@@ -20,16 +20,20 @@ function Register() {
   }
 
   return (
-    <div className="center-box">
-      <h2>Register</h2>
+    <div className="login-container">
+      <div className="form-box">
+        <h2>Register</h2>
 
-      <input placeholder="Name" onChange={(e) => setName(e.target.value)} />
-      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+        <input placeholder="Name" onChange={(e) => setName(e.target.value)} />
+        <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+        <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
 
-      <button onClick={handleRegister}>Register</button>
+        <button onClick={handleRegister}>Register</button>
 
-      <a onClick={() => navigate("/")}>Already have account? Login</a>
+        <p onClick={() => navigate("/")} style={{cursor:"pointer"}}>
+          Already have account? Login
+        </p>
+      </div>
     </div>
   );
 }
