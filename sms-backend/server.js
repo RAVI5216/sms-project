@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -21,27 +22,20 @@ const User = require("./models/User");
 // ================= STUDENT ROUTES =================
 
 // Add Student
-app.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
-
-  // 🔥 HASH PASSWORD
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const user = new User({
-    name,
-    email,
-    password: hashedPassword
-  });
-
-  await user.save();
-
-  res.send("User Registered");
+app.post("/addStudent", async (req, res) => {
+  const student = new Student(req.body);
+  await student.save();
+  res.send("Student Added");
 });
 
 // Get All Students
 app.get("/students", async (req, res) => {
-  const students = await Student.find();
-  res.json(students);
+  try {
+    const students = await Student.find();
+    res.json(students);
+  } catch (err) {
+    res.status(500).send("Error fetching students");
+  }
 });
 
 // Get Single Student
@@ -64,24 +58,54 @@ app.put("/update/:id", async (req, res) => {
 
 // ================= AUTH ROUTES =================
 
-// Register
+// REGISTER (FIXED)
 app.post("/register", async (req, res) => {
-  const user = new User(req.body);
+  const { name, email, password } = req.body;
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = new User({
+    name,
+    email,
+    password: hashedPassword
+  });
+
   await user.save();
   res.send("User Registered");
 });
 
-// Login
+// LOGIN (FIXED)
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email, password });
+  const user = await User.findOne({ email });
 
-  if (user) {
-    res.json({ message: "Login Success", user });
-  } else {
-    res.status(401).json({ message: "Invalid Credentials" });
+  if (!user) {
+    return res.status(401).send("User not found");
   }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    return res.status(401).send("Wrong password");
+  }
+
+  const token = jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  res.json({
+    message: "Login Success",
+    token,
+    user
+  });
+});
+
+// Root route (optional but useful)
+app.get("/", (req, res) => {
+  res.send("Backend Running 🚀");
 });
 
 // ================= SERVER =================
